@@ -1,7 +1,12 @@
-
+---
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
 ```{r, include = FALSE}
 ottrpal::set_knitr_image_path()
-knitr::opts_knit$set(root.dir = '02-dnm')
+knitr::opts_knit$set(root.dir = '/Users/teddy/Documents/Coursework-Human-Genome-Variation/02-dnm')
 ```
 
 # Discovering mutations
@@ -12,24 +17,22 @@ In this module, we'll use DNA sequencing data from human families to explore the
 
 After completing this chapter, you'll be able to:
 
-1. Create plots to visualize the relationship between two variables.
-2. Interpret the results of a linear model.
-3. Compare the impact of maternal vs. paternal age on _de novo_ mutation counts.
-4. Explain what a confidence interval is and why it's useful.
+1.  Create plots to visualize the relationship between two variables.
+2.  Interpret the results of a linear model.
+3.  Compare the impact of maternal vs. paternal age on *de novo* mutation counts.
+4.  Explain what a confidence interval is and why it's useful.
 
-
-## _De novo_ mutations
+## *De novo* mutations
 
 Mutation and recombination are two biological processes that generate genetic variation. When these phenomena occur during gametogenesis, the changes that they make to DNA are passed down to the next generation through germline cells (i.e., sperm and oocyte).
 
-**_De novo_ mutations (DNMs)** arise from errors in DNA replication or repair. These mutations can be single-nucleotide polymorphisms (SNPs) or insertions and deletions of DNA. Every individual typically carries around 70 *de novo* SNPs that were not present in either of their parents.
+***De novo*** **mutations (DNMs)** arise from errors in DNA replication or repair. These mutations can be single-nucleotide polymorphisms (SNPs) or insertions and deletions of DNA. Every individual typically carries around 70 *de novo* SNPs that were not present in either of their parents.
 
 <center>
 
-![**Fig. 1.** Sources of DNMs in gametogenesis.](02-dnm/images/gametogenesis_figure.png)
+![**Fig. 1.** Sources of DNMs in gametogenesis.](images/gametogenesis_figure.png)
 
 </center>
-
 
 ## Recombination
 
@@ -41,10 +44,9 @@ Crossovers are required for meiosis in most organisms because they ensure proper
 
 <center>
 
-![**Fig. 2.** Possible outcomes for double-strand breaks generated during meiosis I. Adapted from *Molecular Biology of the Cell, 6th Edition* (Alberts et al.)](02-dnm/images/recombination_figure.jpg)
+![**Fig. 2.** Possible outcomes for double-strand breaks generated during meiosis I. Adapted from *Molecular Biology of the Cell, 6th Edition* (Alberts et al.)](images/recombination_figure.jpg)
 
 </center>
-
 
 ## Setup
 
@@ -74,20 +76,22 @@ head(dnm_by_age)
 
 The columns in this table are:
 
-1. `Proband_id`: ID of the child (i.e., "proband")
-2. `n_paternal_dnm`: Number of DNMs (carried by the child) that came from the father
-3. `n_maternal_dnm`: Number of DNMs that came from the mother
-4. `n_na_dnm`: Number of DNMs whose parental origin can't be determined
-5. `Father_age`: Father's age at proband's birth
-6. `Mother_age`: Mother's age at proband's birth
-
+1.  `Proband_id`: ID of the child (i.e., "proband")
+2.  `n_paternal_dnm`: Number of DNMs (carried by the child) that came from the father
+3.  `n_maternal_dnm`: Number of DNMs that came from the mother
+4.  `n_na_dnm`: Number of DNMs whose parental origin can't be determined
+5.  `Father_age`: Father's age at proband's birth
+6.  `Mother_age`: Mother's age at proband's birth
 
 ## Visualizing the data
 
 We can use our tidied data to ask questions about the *de novo* mutation rate in these Icelandic individuals. How does parental age affect the number of DNMs for males and females?
 
-***
-<details> <summary> Use the `dnm_by_age` data to plot this relationship for _males_. </summary>
+------------------------------------------------------------------------
+
+<details>
+
+<summary>Use the `dnm_by_age` data to plot this relationship for *males*.</summary>
 
 ```{r}
 ggplot(data = dnm_by_age,
@@ -100,18 +104,26 @@ ggplot(data = dnm_by_age,
 ```
 
 </details>
-***
 
-***
-<details> <summary> Based on your plot, would you say that there's an association between paternal age and number of DNMs? </summary>
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+<details>
+
+<summary>Based on your plot, would you say that there's an association between paternal age and number of DNMs?</summary>
 
 It looks like there's a pretty strong association between paternal age and number of DNMs, where older males have more DNMs.
 
 </details>
-***
 
-***
-<details> <summary> Modify your code to plot the relationship between age and number of DNMs for _females_. Does there seem to be an association between maternal age and number of DNMs? </summary>
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+<details>
+
+<summary>Modify your code to plot the relationship between age and number of DNMs for *females*. Does there seem to be an association between maternal age and number of DNMs?</summary>
 
 ```{r}
 ggplot(data = dnm_by_age,
@@ -123,8 +135,8 @@ ggplot(data = dnm_by_age,
 There's also a strong positive association between maternal age and number of DNMs, although the slope (i.e., the increase in number of DNMs per year) is shallower.
 
 </details>
-***
 
+------------------------------------------------------------------------
 
 ## Linear models
 
@@ -132,15 +144,19 @@ We can visually observe that age seems associated with number of DNMs in both ma
 
 We can do this with a **linear model**. This model fits a line to the plots that we just made, and asks if the slope is significantly different from 0 (i.e., if there's a significant increase in DNM count as age increases).
 
-***
-<details> <summary> If this is a statistical test, what's the null hypothesis? </summary>
+------------------------------------------------------------------------
+
+<details>
+
+<summary>If this is a statistical test, what's the null hypothesis?</summary>
 
 The null hypothesis for this linear model is that the slope is 0 -- i.e., that there's no association between parental age and the number of DNMs from that parent.
 
 If the slope is significantly different from 0, we can reject the null hypothesis.
 
 </details>
-***
+
+------------------------------------------------------------------------
 
 We'll fit a linear model using R's `lm` function. Run the following code block to open a manual describing the function.
 
@@ -150,19 +166,22 @@ We'll fit a linear model using R's `lm` function. Run the following code block t
 
 `lm` requires two arguments:
 
-* The formula or equation it's evaluating
-* A table of data
+-   The formula or equation it's evaluating
+-   A table of data
 
 The formula must be in the format `response variable ~ predictor variable(s)`, where each variable is the name of a column in our data table.
 
-***
-<details><summary> Is our predictor variable the parental age or the number of DNMs? </summary>
+------------------------------------------------------------------------
 
-The predictor variable is parental age. We expect the number of DNMs to change as a _consequence_ of parental age.
+<details>
+
+<summary>Is our predictor variable the parental age or the number of DNMs?</summary>
+
+The predictor variable is parental age. We expect the number of DNMs to change as a *consequence* of parental age.
 
 </details>
-***
 
+------------------------------------------------------------------------
 
 ## Fitting a linear model for DNMs
 
@@ -177,30 +196,38 @@ fit_pat <- lm(formula = n_paternal_dnm ~ Father_age,
 summary(fit_pat)
 ```
 
-***
-<details> <summary> How do you interpret results from a linear model? </summary>
+------------------------------------------------------------------------
+
+<details>
+
+<summary>How do you interpret results from a linear model?</summary>
 
 For our purposes, the only part of the results you need to look at is the line under `(Intercept)` in the `Coefficients` section:
-```
+
+```         
             Estimate Std. Error t value Pr(>|t|)
 Father_age   1.34849    0.05359  25.161  < 2e-16 ***
 ```
 
-* The fourth columm, `Pr(>|t|)`, is the **p-value**.
+-   The fourth columm, `Pr(>|t|)`, is the **p-value**.
 
 Because this p-value is `< 2e-16`, we can reject the null hypothesis and say that there is association between paternal age and the number of paternal DNMs.<br></br>
 
-* The first column, `Estimate`, is the **slope**, or **coefficient**.
+-   The first column, `Estimate`, is the **slope**, or **coefficient**.
 
 Linear regression fits a line to our plot of paternal age vs. number of DNMs. The coefficient estimate is the **slope** of that line.
 
 The slope for paternal age given by this linear model is `1.34849`. We can interpret this number this way: **For every additional year of paternal age, we expect 1.35 additional paternal DNMs in the child.**
 
 </details>
-***
 
-***
-<details> <summary> Modify your code to assess the relationship between _maternal_ age and number of _maternal_ DNMs. Is this relationship significant? How many maternal DNMs do we expect for every additional year of maternal age? </summary>
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+<details>
+
+<summary>Modify your code to assess the relationship between *maternal* age and number of *maternal* DNMs. Is this relationship significant? How many maternal DNMs do we expect for every additional year of maternal age?</summary>
 
 ```{r}
 # fit linear model for maternal DNMs
@@ -216,8 +243,8 @@ The p-value is `<2e-16` and the `Mother_age` slope is `0.37846`.
 This relationship is significant, and we expect 0.38 more maternal DNMs for every additional year of maternal age.
 
 </details>
-***
 
+------------------------------------------------------------------------
 
 ## Confidence intervals
 
@@ -227,8 +254,11 @@ The maternal and paternal slopes look different, but we need statistical evidenc
 
 To do this, we compare the **confidence intervals** of our slope estimates.
 
-***
-<details> <summary> What is a confidence interval? </summary>
+------------------------------------------------------------------------
+
+<details>
+
+<summary>What is a confidence interval?</summary>
 
 We use confidence intervals when estimating a value -- in this case, the `Mother_age` and `Father_age` slope parameters.
 
@@ -237,9 +267,10 @@ A **confidence interval (CI)** is a random interval that has a 95% probability o
 Keep in mind that the definition above (95% of random intervals fall on the true value) is not the same as saying there is a 95% chance that the true value falls within our interval. This latter statement is not accurate.
 
 </details>
-***
 
-In R, we get the confidence interval of a parameter from a linear model with the `confint` function. 
+------------------------------------------------------------------------
+
+In R, we get the confidence interval of a parameter from a linear model with the `confint` function.
 
 ```{r}
 ?confint
@@ -247,10 +278,9 @@ In R, we get the confidence interval of a parameter from a linear model with the
 
 `confint` requires three arguments:
 
-* A fitted linear model (our `fit_pat` variable)
-* The parameter we want a CI for (`Father_age`)
-* The CI's probability (typically 95%)
-
+-   A fitted linear model (our `fit_pat` variable)
+-   The parameter we want a CI for (`Father_age`)
+-   The CI's probability (typically 95%)
 
 ## Calculate 95% CIs
 
@@ -262,8 +292,11 @@ confint(fit_pat, 'Father_age', level = 0.95)
 
 So, 95% of the time, the number of additional DNMs per year of paternal age is between `1.24` and `1.45`.
 
-***
-<details> <summary> Modify your code to get the 95% CI for the _`Mother_age`_ slope. What's the interpretation of this confidence interval? </summary>
+------------------------------------------------------------------------
+
+<details>
+
+<summary>Modify your code to get the 95% CI for the *`Mother_age`* slope. What's the interpretation of this confidence interval?</summary>
 
 ```{r}
 confint(fit_mat, 'Mother_age', level = 0.95)
@@ -272,43 +305,45 @@ confint(fit_mat, 'Mother_age', level = 0.95)
 95% of the time, the number of additional DNMs per year of maternal age is between `0.31` and `0.45`.
 
 </details>
-***
+
+------------------------------------------------------------------------
 
 Now that we have the confidence intervals for both slope parameters, we can finally compare them.
 
 Our two CI ranges are non-overlapping. The paternal range is `[1.24, 1.45]` and the maternal range is `[0.31, 0.45]`.
 
-If the 95% CIs for two parameters _don't_ overlap, this strongly supports that the parameters are significantly different from one another. **So, it seems likely that paternal and maternal gametes experience different rates of _de novo_ mutation.**
+If the 95% CIs for two parameters *don't* overlap, this strongly supports that the parameters are significantly different from one another. **So, it seems likely that paternal and maternal gametes experience different rates of *de novo* mutation.**
 
-***
-<details><summary> If the CIs for two parameters overlap, are they not significantly different? </summary>
+------------------------------------------------------------------------
+
+<details>
+
+<summary>If the CIs for two parameters overlap, are they not significantly different?</summary>
+
 Not necessarily. More analysis, like a hypothesis test, is needed to make a final decision.
-</details>
-***
 
+</details>
+
+------------------------------------------------------------------------
 
 ## Conclusion
 
-In this lab, we explored the relationship between parental age and the number of _de novo_ mutations in their gametes.
+In this lab, we explored the relationship between parental age and the number of *de novo* mutations in their gametes.
 
-* We **plotted** the relationship between maternal/paternal age and DNM count. This visualization suggested that DNM count increases with age for both groups.
-<br></br>
-* We confirmed this hypothesis by using a **linear model**, which tests if additional years of age have a non-zero effect on the number of DNMs.
-<br></br>
-* The number of paternal DNMs seemed to increase more quickly with age than maternal DNMs. We confirmed this by comparing the **95% confidence intervals** of the slopes of the two models.
+-   We **plotted** the relationship between maternal/paternal age and DNM count. This visualization suggested that DNM count increases with age for both groups. <br></br>
+-   We confirmed this hypothesis by using a **linear model**, which tests if additional years of age have a non-zero effect on the number of DNMs. <br></br>
+-   The number of paternal DNMs seemed to increase more quickly with age than maternal DNMs. We confirmed this by comparing the **95% confidence intervals** of the slopes of the two models.
 
 One final question -- let's assume that there really is a difference between the effect of age on DNMs in male and female gametes. What biological reasons might be causing this difference?
 
-
 ## Homework
 
-So far, we've only looked at the _de novo_ mutation data from [the Halldorsson et al. paper](https://science.sciencemag.org/content/363/6425/eaau1043). Now we'll use their data on the number of maternal and paternal origin crossovers (i.e., how many crossovers occurred across all chromosomes in the maternal and paternal gametes).
+So far, we've only looked at the *de novo* mutation data from [the Halldorsson et al. paper](https://science.sciencemag.org/content/363/6425/eaau1043). Now we'll use their data on the number of maternal and paternal origin crossovers (i.e., how many crossovers occurred across all chromosomes in the maternal and paternal gametes).
 
 #### Learning Objectives
 
-* Practice visualizing data with `ggplot2`
-* Interpret p-values and effect sizes from linear models
-
+-   Practice visualizing data with `ggplot2`
+-   Interpret p-values and effect sizes from linear models
 
 ## Required homework
 
@@ -324,16 +359,60 @@ head(crossovers)
 
 The columns in this table are:
 
-1. `Proband_id`: ID of the child
-2. `n_pat_xover`: Number of crossovers (carried by the child) that occurred in the paternal gametes
-3. `n_mat_xover`: Number of crossovers that occurred in the maternal gametes
-4. `Father_age`: Father's age at proband's birth
-5. `Mother_age`: Mother's age at proband's birth
+1.  `Proband_id`: ID of the child
+2.  `n_pat_xover`: Number of crossovers (carried by the child) that occurred in the paternal gametes
+3.  `n_mat_xover`: Number of crossovers that occurred in the maternal gametes
+4.  `Father_age`: Father's age at proband's birth
+5.  `Mother_age`: Mother's age at proband's birth
 
 **Assignment:** Using the `ggplot` code from this module, plot the relationship between parental age and number of crossovers. As with the DNM data, make one plot for the maternal crossovers and one plot for the paternal. Do you think parental age impacts crossover number?
 
-***
-<details> <summary> Solution </summary>
+------------------------------------------------------------------------
+
+## Optional homework
+
+**Assignment:** Fit *two* linear models (one paternal, one maternal) to ask if there is an association between the number of parental crossovers and parental age. If there is an association, how is the number of crossovers predicted to change with every year of maternal/paternal age?
+------------------------------------------------------------------------
+
+**My solution** 
+
+Paternal crossovers:
+
+```{r}
+ggplot(crossovers, aes(Father_age, n_pat_xover)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE, color = "red", fill = "pink")
+
+fit_pat <- lm(data = crossovers,
+              formula = n_pat_xover ~ Father_age)
+summary(fit_pat)
+```
+
+> Results are insignificant and with negligable R^2
+
+Maternal crossovers:
+
+```{r}
+ggplot(crossovers, aes(Mother_age, n_mat_xover)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE, color = "red", fill = "pink")
+
+fit_mat <- lm(data = crossovers,
+              formula = n_mat_xover ~ Mother_age)
+summary(fit_mat)
+
+```
+
+> Results are significant but of little predictive value: negligable R^2
+
+
+
+
+------------------------------------------------------------------------
+
+<details>
+
+<summary>Solution</summary>
 
 Plot paternal crossovers:
 
@@ -360,15 +439,12 @@ ggplot(data = crossovers,
 Just by eye, it doesn't really seem that age affects number of crossovers for either mothers or fathers.
 
 </details>
-***
 
+------------------------------------------------------------------------
 
-## Optional homework
+<details>
 
-**Assignment:** Fit _two_ linear models (one paternal, one maternal) to ask if there is an association between the number of parental crossovers and parental age. If there is an association, how is the number of crossovers predicted to change with every year of maternal/paternal age?
-
-***
-<details> <summary> Solution </summary>
+<summary>Solution</summary>
 
 ```{r}
 # fit the model with paternal age
@@ -386,9 +462,10 @@ fit_mat <- lm(data = crossovers,
 summary(fit_mat)
 ```
 
-Surprisingly, there _is_ a significant association between maternal age and the number of maternal crossovers (`p < 2e-16`). For every year of maternal age, we expect the child to carry `0.07` additional maternal origin crossovers.
+Surprisingly, there *is* a significant association between maternal age and the number of maternal crossovers (`p < 2e-16`). For every year of maternal age, we expect the child to carry `0.07` additional maternal origin crossovers.
 
 Although the maternal crossovers plot doesn't look that impressive, our estimated slope is `0.07`, which is probably too small to distinguish visually.
 
 </details>
-***
+
+------------------------------------------------------------------------

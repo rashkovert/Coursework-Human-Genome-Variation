@@ -1,0 +1,825 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{\vspace{-2.5em}}
+
+\begin{document}
+
+\section{Discovering mutations}\label{discovering-mutations}
+
+In this module, we'll use DNA sequencing data from human families to
+explore the relationship between parental age and \emph{de novo}
+mutations in their children.
+
+\paragraph{Learning objectives}\label{learning-objectives}
+
+After completing this chapter, you'll be able to:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Create plots to visualize the relationship between two variables.
+\item
+  Interpret the results of a linear model.
+\item
+  Compare the impact of maternal vs.~paternal age on \emph{de novo}
+  mutation counts.
+\item
+  Explain what a confidence interval is and why it's useful.
+\end{enumerate}
+
+\subsection{\texorpdfstring{\emph{De novo}
+mutations}{De novo mutations}}\label{de-novo-mutations}
+
+Mutation and recombination are two biological processes that generate
+genetic variation. When these phenomena occur during gametogenesis, the
+changes that they make to DNA are passed down to the next generation
+through germline cells (i.e., sperm and oocyte).
+
+\textbf{\emph{De novo}} \textbf{mutations (DNMs)} arise from errors in
+DNA replication or repair. These mutations can be single-nucleotide
+polymorphisms (SNPs) or insertions and deletions of DNA. Every
+individual typically carries around 70 \emph{de novo} SNPs that were not
+present in either of their parents.
+
+\begin{figure}
+\centering
+\pandocbounded{\includegraphics[keepaspectratio]{02-dnm/images/gametogenesis_figure.png}}
+\caption{\textbf{Fig. 1.} Sources of DNMs in gametogenesis.}
+\end{figure}
+
+\subsection{Recombination}\label{recombination}
+
+\textbf{Crossovers}, or meiotic \textbf{recombination}, occur during
+prophase of meiosis I, when homologous chromosomes pair with each other.
+Double-strand breaks are deliberately generated in the DNA, and are then
+cut back and repaired based on the sequence of the homologous
+chromosome. These repairs can sometimes resolve in a crossover event,
+where sections of DNA are swapped between chromosomes.
+
+Because the sequences of homologous chromosomes differ at sites where
+they carry different alleles, recombination generates genetic diversity
+by creating new haplotypes, or combinations of alleles.
+
+Crossovers are required for meiosis in most organisms because they
+ensure proper homologous chromosome pairing and segregation. Humans
+experience 1-4 crossover events per chromosome, with longer chromosomes
+having more crossovers.
+
+\begin{figure}
+\centering
+\pandocbounded{\includegraphics[keepaspectratio]{02-dnm/images/recombination_figure.jpg}}
+\caption{\textbf{Fig. 2.} Possible outcomes for double-strand breaks
+generated during meiosis I. Adapted from \emph{Molecular Biology of the
+Cell, 6th Edition} (Alberts et al.)}
+\end{figure}
+
+\subsection{Setup}\label{setup}
+
+In this module, we'll use sequencing data from families to look at the
+relationship between DNMs, crossovers, and parental age.
+
+\subsubsection{R packages}\label{r-packages}
+
+We're using R's \texttt{tidyverse} library to analyze our data. You can
+load this R package by running:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Data}\label{data}
+
+Our data comes from the supplementary tables of
+\href{https://science.sciencemag.org/content/363/6425/eaau1043}{this
+paper by Halldorsson et al.}, which performed whole-genome sequencing on
+``trios'' (two parents and one child) in Iceland. We've pre-processed
+the data to make it easier to work with.
+
+Load the pre-processed data by running the code chunk below.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# read data}
+\NormalTok{dnm\_by\_age }\OtherTok{\textless{}{-}} \FunctionTok{read.table}\NormalTok{(}\StringTok{"dnm\_by\_age\_tidy\_Halldorsson.tsv"}\NormalTok{,}
+                         \AttributeTok{sep =} \StringTok{"}\SpecialCharTok{\textbackslash{}t}\StringTok{"}\NormalTok{, }\AttributeTok{header =} \ConstantTok{TRUE}\NormalTok{)}
+\CommentTok{\# preview data}
+\FunctionTok{head}\NormalTok{(dnm\_by\_age)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   Proband_id n_paternal_dnm n_maternal_dnm n_na_dnm Father_age Mother_age
+## 1        675             51             19        0         31         36
+## 2       1097             26             12        1         19         19
+## 3       1230             42             12        3         30         28
+## 4       1481             53             14        1         32         20
+## 5       1806             61             11        6         38         34
+## 6       2280             63              9        3         38         20
+\end{verbatim}
+
+The columns in this table are:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \texttt{Proband\_id}: ID of the child (i.e., ``proband'')
+\item
+  \texttt{n\_paternal\_dnm}: Number of DNMs (carried by the child) that
+  came from the father
+\item
+  \texttt{n\_maternal\_dnm}: Number of DNMs that came from the mother
+\item
+  \texttt{n\_na\_dnm}: Number of DNMs whose parental origin can't be
+  determined
+\item
+  \texttt{Father\_age}: Father's age at proband's birth
+\item
+  \texttt{Mother\_age}: Mother's age at proband's birth
+\end{enumerate}
+
+\subsection{Visualizing the data}\label{visualizing-the-data}
+
+We can use our tidied data to ask questions about the \emph{de novo}
+mutation rate in these Icelandic individuals. How does parental age
+affect the number of DNMs for males and females?
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Use the \texttt{dnm\_by\_age} data to plot this relationship for
+\emph{males}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\AttributeTok{data =}\NormalTok{ dnm\_by\_age,}
+       \CommentTok{\# specify where ggplot should be getting the x location for each data point}
+       \FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Father\_age,}
+           \CommentTok{\# specify where ggplot should be getting the y location for each data point}
+           \AttributeTok{y =}\NormalTok{ n\_paternal\_dnm)) }\SpecialCharTok{+}
+  \CommentTok{\# specify that the data should be plotted as points}
+  \FunctionTok{geom\_point}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{02-dnm_files/figure-latex/unnamed-chunk-4-1.pdf}}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Based on your plot, would you say that there's an association between
+paternal age and number of DNMs?
+
+It looks like there's a pretty strong association between paternal age
+and number of DNMs, where older males have more DNMs.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Modify your code to plot the relationship between age and number of DNMs
+for \emph{females}. Does there seem to be an association between
+maternal age and number of DNMs?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\AttributeTok{data =}\NormalTok{ dnm\_by\_age,}
+       \FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Mother\_age,}
+           \AttributeTok{y =}\NormalTok{ n\_maternal\_dnm)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{02-dnm_files/figure-latex/unnamed-chunk-5-1.pdf}}
+
+There's also a strong positive association between maternal age and
+number of DNMs, although the slope (i.e., the increase in number of DNMs
+per year) is shallower.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Linear models}\label{linear-models}
+
+We can visually observe that age seems associated with number of DNMs in
+both males and females, but we need a way to ask if that this is a
+statistically meaningful association.
+
+We can do this with a \textbf{linear model}. This model fits a line to
+the plots that we just made, and asks if the slope is significantly
+different from 0 (i.e., if there's a significant increase in DNM count
+as age increases).
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+If this is a statistical test, what's the null hypothesis?
+
+The null hypothesis for this linear model is that the slope is 0 --
+i.e., that there's no association between parental age and the number of
+DNMs from that parent.
+
+If the slope is significantly different from 0, we can reject the null
+hypothesis.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+We'll fit a linear model using R's \texttt{lm} function. Run the
+following code block to open a manual describing the function.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{?lm}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{lm} requires two arguments:
+
+\begin{itemize}
+\tightlist
+\item
+  The formula or equation it's evaluating
+\item
+  A table of data
+\end{itemize}
+
+The formula must be in the format
+\texttt{response\ variable\ \textasciitilde{}\ predictor\ variable(s)},
+where each variable is the name of a column in our data table.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Is our predictor variable the parental age or the number of DNMs?
+
+The predictor variable is parental age. We expect the number of DNMs to
+change as a \emph{consequence} of parental age.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Fitting a linear model for
+DNMs}\label{fitting-a-linear-model-for-dnms}
+
+Run the following code to fit a model for the effect of age on paternal
+DNMs.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# fit linear model for paternal DNMs}
+\NormalTok{fit\_pat }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(}\AttributeTok{formula =}\NormalTok{ n\_paternal\_dnm }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Father\_age,}
+              \AttributeTok{data =}\NormalTok{ dnm\_by\_age)}
+
+\CommentTok{\# print results of model}
+\FunctionTok{summary}\NormalTok{(fit\_pat)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = n_paternal_dnm ~ Father_age, data = dnm_by_age)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -32.785  -5.683  -0.581   5.071  31.639 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 10.58819    1.70402   6.214 1.34e-09 ***
+## Father_age   1.34849    0.05359  25.161  < 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 8.426 on 388 degrees of freedom
+## Multiple R-squared:   0.62,  Adjusted R-squared:  0.619 
+## F-statistic: 633.1 on 1 and 388 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+How do you interpret results from a linear model?
+
+For our purposes, the only part of the results you need to look at is
+the line under \texttt{(Intercept)} in the \texttt{Coefficients}
+section:
+
+\begin{verbatim}
+            Estimate Std. Error t value Pr(>|t|)
+Father_age   1.34849    0.05359  25.161  < 2e-16 ***
+\end{verbatim}
+
+\begin{itemize}
+\tightlist
+\item
+  The fourth columm, \texttt{Pr(\textgreater{}\textbar{}t\textbar{})},
+  is the \textbf{p-value}.
+\end{itemize}
+
+Because this p-value is \texttt{\textless{}\ 2e-16}, we can reject the
+null hypothesis and say that there is association between paternal age
+and the number of paternal DNMs.
+
+\begin{itemize}
+\tightlist
+\item
+  The first column, \texttt{Estimate}, is the \textbf{slope}, or
+  \textbf{coefficient}.
+\end{itemize}
+
+Linear regression fits a line to our plot of paternal age vs.~number of
+DNMs. The coefficient estimate is the \textbf{slope} of that line.
+
+The slope for paternal age given by this linear model is
+\texttt{1.34849}. We can interpret this number this way: \textbf{For
+every additional year of paternal age, we expect 1.35 additional
+paternal DNMs in the child.}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Modify your code to assess the relationship between \emph{maternal} age
+and number of \emph{maternal} DNMs. Is this relationship significant?
+How many maternal DNMs do we expect for every additional year of
+maternal age?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# fit linear model for maternal DNMs}
+\NormalTok{fit\_mat }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(}\AttributeTok{formula =}\NormalTok{ n\_maternal\_dnm }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Mother\_age,}
+              \AttributeTok{data =}\NormalTok{ dnm\_by\_age)}
+
+\CommentTok{\# print results of model}
+\FunctionTok{summary}\NormalTok{(fit\_mat)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = n_maternal_dnm ~ Mother_age, data = dnm_by_age)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -9.8683 -3.1044 -0.2329  2.2394 17.5379 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  2.51442    0.98193   2.561   0.0108 *  
+## Mother_age   0.37846    0.03509  10.785   <2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 4.503 on 388 degrees of freedom
+## Multiple R-squared:  0.2307, Adjusted R-squared:  0.2287 
+## F-statistic: 116.3 on 1 and 388 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+The p-value is \texttt{\textless{}2e-16} and the \texttt{Mother\_age}
+slope is \texttt{0.37846}.
+
+This relationship is significant, and we expect 0.38 more maternal DNMs
+for every additional year of maternal age.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Confidence intervals}\label{confidence-intervals}
+
+Our models predict that there are 1.35 more DNMs for additional every
+year of paternal age, and 0.38 more DNMs for every additional year of
+maternal age. Does this mean that sperm and oocytes accumulate DNMs at
+different rates?
+
+The maternal and paternal slopes look different, but we need statistical
+evidence that they actually are. (For example, what if there's a lot of
+variability in the maternal DNM data, and the true maternal coefficient
+could be anywhere between -1 and 10?)
+
+To do this, we compare the \textbf{confidence intervals} of our slope
+estimates.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+What is a confidence interval?
+
+We use confidence intervals when estimating a value -- in this case, the
+\texttt{Mother\_age} and \texttt{Father\_age} slope parameters.
+
+A \textbf{confidence interval (CI)} is a random interval that has a 95\%
+probability of falling on the parameter we are estimating. So, a 95\% CI
+contains the true value of the slope 95\% of the time.
+
+Keep in mind that the definition above (95\% of random intervals fall on
+the true value) is not the same as saying there is a 95\% chance that
+the true value falls within our interval. This latter statement is not
+accurate.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+In R, we get the confidence interval of a parameter from a linear model
+with the \texttt{confint} function.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{?confint}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{confint} requires three arguments:
+
+\begin{itemize}
+\tightlist
+\item
+  A fitted linear model (our \texttt{fit\_pat} variable)
+\item
+  The parameter we want a CI for (\texttt{Father\_age})
+\item
+  The CI's probability (typically 95\%)
+\end{itemize}
+
+\subsection{Calculate 95\% CIs}\label{calculate-95-cis}
+
+Run the following code to calculate the 95\% confidence interval for the
+\texttt{Father\_age} slope parameter.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{confint}\NormalTok{(fit\_pat, }\StringTok{\textquotesingle{}Father\_age\textquotesingle{}}\NormalTok{, }\AttributeTok{level =} \FloatTok{0.95}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##               2.5 %  97.5 %
+## Father_age 1.243118 1.45386
+\end{verbatim}
+
+So, 95\% of the time, the number of additional DNMs per year of paternal
+age is between \texttt{1.24} and \texttt{1.45}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Modify your code to get the 95\% CI for the \emph{\texttt{Mother\_age}}
+slope. What's the interpretation of this confidence interval?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{confint}\NormalTok{(fit\_mat, }\StringTok{\textquotesingle{}Mother\_age\textquotesingle{}}\NormalTok{, }\AttributeTok{level =} \FloatTok{0.95}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                2.5 %    97.5 %
+## Mother_age 0.3094713 0.4474528
+\end{verbatim}
+
+95\% of the time, the number of additional DNMs per year of maternal age
+is between \texttt{0.31} and \texttt{0.45}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Now that we have the confidence intervals for both slope parameters, we
+can finally compare them.
+
+Our two CI ranges are non-overlapping. The paternal range is
+\texttt{{[}1.24,\ 1.45{]}} and the maternal range is
+\texttt{{[}0.31,\ 0.45{]}}.
+
+If the 95\% CIs for two parameters \emph{don't} overlap, this strongly
+supports that the parameters are significantly different from one
+another. \textbf{So, it seems likely that paternal and maternal gametes
+experience different rates of \emph{de novo} mutation.}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+If the CIs for two parameters overlap, are they not significantly
+different?
+
+Not necessarily. More analysis, like a hypothesis test, is needed to
+make a final decision.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Conclusion}\label{conclusion}
+
+In this lab, we explored the relationship between parental age and the
+number of \emph{de novo} mutations in their gametes.
+
+\begin{itemize}
+\tightlist
+\item
+  We \textbf{plotted} the relationship between maternal/paternal age and
+  DNM count. This visualization suggested that DNM count increases with
+  age for both groups.
+\item
+  We confirmed this hypothesis by using a \textbf{linear model}, which
+  tests if additional years of age have a non-zero effect on the number
+  of DNMs.
+\item
+  The number of paternal DNMs seemed to increase more quickly with age
+  than maternal DNMs. We confirmed this by comparing the \textbf{95\%
+  confidence intervals} of the slopes of the two models.
+\end{itemize}
+
+One final question -- let's assume that there really is a difference
+between the effect of age on DNMs in male and female gametes. What
+biological reasons might be causing this difference?
+
+\subsection{Homework}\label{homework}
+
+So far, we've only looked at the \emph{de novo} mutation data from
+\href{https://science.sciencemag.org/content/363/6425/eaau1043}{the
+Halldorsson et al.~paper}. Now we'll use their data on the number of
+maternal and paternal origin crossovers (i.e., how many crossovers
+occurred across all chromosomes in the maternal and paternal gametes).
+
+\paragraph{Learning Objectives}\label{learning-objectives-1}
+
+\begin{itemize}
+\tightlist
+\item
+  Practice visualizing data with \texttt{ggplot2}
+\item
+  Interpret p-values and effect sizes from linear models
+\end{itemize}
+
+\subsection{Required homework}\label{required-homework}
+
+The data from the paper has been pre-filtered for you. Run this code
+block to read it in:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# read data}
+\NormalTok{crossovers }\OtherTok{\textless{}{-}} \FunctionTok{read.table}\NormalTok{(}\StringTok{"crossovers.tsv"}\NormalTok{, }\AttributeTok{header =} \ConstantTok{TRUE}\NormalTok{)}
+
+\CommentTok{\# preview data}
+\FunctionTok{head}\NormalTok{(crossovers)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   Proband_id n_pat_xover n_mat_xover Father_age Mother_age
+## 1          3          22          51         29         28
+## 2         10          26          50         26         26
+## 3         11          25          38         25         22
+## 4         15          24          50         31         26
+## 5         20          27          35         26         24
+## 6         22          28          40         39         31
+\end{verbatim}
+
+The columns in this table are:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \texttt{Proband\_id}: ID of the child
+\item
+  \texttt{n\_pat\_xover}: Number of crossovers (carried by the child)
+  that occurred in the paternal gametes
+\item
+  \texttt{n\_mat\_xover}: Number of crossovers that occurred in the
+  maternal gametes
+\item
+  \texttt{Father\_age}: Father's age at proband's birth
+\item
+  \texttt{Mother\_age}: Mother's age at proband's birth
+\end{enumerate}
+
+\textbf{Assignment:} Using the \texttt{ggplot} code from this module,
+plot the relationship between parental age and number of crossovers. As
+with the DNM data, make one plot for the maternal crossovers and one
+plot for the paternal. Do you think parental age impacts crossover
+number?
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Solution
+
+Plot paternal crossovers:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\AttributeTok{data =}\NormalTok{ crossovers,}
+       \CommentTok{\# x axis is paternal age}
+       \FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Father\_age,}
+           \CommentTok{\# y axis is number of crossovers}
+           \AttributeTok{y =}\NormalTok{ n\_pat\_xover)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{02-dnm_files/figure-latex/unnamed-chunk-13-1.pdf}}
+
+Plot maternal crossovers:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\AttributeTok{data =}\NormalTok{ crossovers,}
+       \CommentTok{\# x axis is maternal age}
+       \FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Mother\_age,}
+           \CommentTok{\# y axis is number of crossovers}
+           \AttributeTok{y =}\NormalTok{ n\_mat\_xover)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{02-dnm_files/figure-latex/unnamed-chunk-14-1.pdf}}
+
+Just by eye, it doesn't really seem that age affects number of
+crossovers for either mothers or fathers.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Optional homework}\label{optional-homework}
+
+\textbf{Assignment:} Fit \emph{two} linear models (one paternal, one
+maternal) to ask if there is an association between the number of
+parental crossovers and parental age. If there is an association, how is
+the number of crossovers predicted to change with every year of
+maternal/paternal age?
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Solution
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# fit the model with paternal age}
+\NormalTok{fit\_pat }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(}\AttributeTok{data =}\NormalTok{ crossovers,}
+              \AttributeTok{formula =}\NormalTok{ n\_pat\_xover }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Father\_age)}
+\FunctionTok{summary}\NormalTok{(fit\_pat)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = n_pat_xover ~ Father_age, data = crossovers)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -15.2173  -3.1880  -0.1997   2.8061  24.7652 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 26.369432   0.102736  256.67   <2e-16 ***
+## Father_age  -0.005852   0.003462   -1.69    0.091 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 4.388 on 41090 degrees of freedom
+## Multiple R-squared:  6.953e-05,  Adjusted R-squared:  4.519e-05 
+## F-statistic: 2.857 on 1 and 41090 DF,  p-value: 0.09098
+\end{verbatim}
+
+There isn't a significant association between paternal age and the
+number of paternal crossovers (\texttt{p\ =\ 0.091}).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# fit the model with maternal age}
+\NormalTok{fit\_mat }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(}\AttributeTok{data =}\NormalTok{ crossovers,}
+              \AttributeTok{formula =}\NormalTok{ n\_mat\_xover }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Mother\_age)}
+\FunctionTok{summary}\NormalTok{(fit\_mat)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = n_mat_xover ~ Mother_age, data = crossovers)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -27.161  -6.095  -0.425   5.641  45.905 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 41.709271   0.206238  202.24   <2e-16 ***
+## Mother_age   0.065989   0.007576    8.71   <2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 8.685 on 41090 degrees of freedom
+## Multiple R-squared:  0.001843,   Adjusted R-squared:  0.001819 
+## F-statistic: 75.87 on 1 and 41090 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+Surprisingly, there \emph{is} a significant association between maternal
+age and the number of maternal crossovers
+(\texttt{p\ \textless{}\ 2e-16}). For every year of maternal age, we
+expect the child to carry \texttt{0.07} additional maternal origin
+crossovers.
+
+Although the maternal crossovers plot doesn't look that impressive, our
+estimated slope is \texttt{0.07}, which is probably too small to
+distinguish visually.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\end{document}
