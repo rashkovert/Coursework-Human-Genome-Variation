@@ -9,3 +9,13 @@
 docker/git_token.txt
 .Rproj.user
 .rds
+
+06-gwas/genotypes.ped
+
+09-archaic_admixture/
+10-gene_expression/
+11-coronavirus/
+
+Project_MXL_admixture/Data
+Project_MXL_admixture/MXL_admixture.Rmd
+

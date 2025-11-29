@@ -4,9 +4,10 @@ output:
   word_document: default
   pdf_document: default
 ---
-```{r, include = FALSE}
+```{r, include = FALSE} 
 ottrpal::set_knitr_image_path()
-knitr::opts_knit$set(root.dir = '/Users/teddy/Documents/Coursework-Human-Genome-Variation/02-dnm')
+BASE_WD = '...' # SPECIFY BASE_WD
+knitr::opts_knit$set(root.dir = file.path(BASE_WD, '02-dnm'))
 ```
 
 # Discovering mutations

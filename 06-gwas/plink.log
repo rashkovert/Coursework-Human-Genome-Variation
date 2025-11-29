@@ -1,0 +1,31 @@
+PLINK v1.9.0-b.7.11 64-bit (19 Aug 2025)
+Options in effect:
+  --allow-no-sex
+  --file genotypes
+  --linear
+  --pheno GS451_IC50.txt
+  --pheno-name GS451_IC50
+
+Hostname: Teddys-MacBook-Air.local
+Working directory: /Users/teddy/Documents/Coursework-Human-Genome-Variation/06-gwas
+Start time: Wed Oct  1 19:07:31 2025
+
+Random number seed: 1759360051
+16384 MB RAM detected; reserving 8192 MB for main workspace.
+Scanning .ped file... done.
+Performing single-pass .bed write (256896 variants, 176 people).
+--file: plink-temporary.bed + plink-temporary.bim + plink-temporary.fam
+written.
+256896 variants loaded from .bim file.
+176 people (0 males, 0 females, 176 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to plink.nosex .
+175 phenotype values present after --pheno.
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 176 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is 0.921467.
+256896 variants and 176 people pass filters and QC.
+Phenotype data is quantitative.
+Writing linear model association results to plink.assoc.linear ... done.
+
+End time: Wed Oct  1 19:07:32 2025

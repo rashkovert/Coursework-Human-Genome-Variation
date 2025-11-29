@@ -1,308 +1,145 @@
+---
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
 ```{r, include = FALSE}
 ottrpal::set_knitr_image_path()
-knitr::opts_knit$set(root.dir = '08-selection')
-# install packages for the lab
-install.packages("BiocManager")
-devtools::install_version('rvcheck',version='0.1.8') # required for install on R < 4.0
-BiocManager::install("ggtree")
-```
 
-# Scans for selection
+BASE_WD = '/Users/teddy/Documents/Coursework-Human-Genome-Variation/' # SPECIFY BASE_WD 
+knitr::opts_knit$set(root.dir = file.path(BASE_WD, '08-selection'))
 
-In this lab, we'll explore three methods for identifying signatures of selection: F~ST~, population branch statistic (PBS), and extended haplotype homozygosity (EHH).
+#install.packages("BiocManager")
+#devtools::install_version('rvcheck',version='0.1.8') # required for install on R < 4.0
+#BiocManager::install("ggtree")
 
-#### Learning objectives
-
-After completing this chapter, you'll be able to:
-
-1. Describe the genetic signatures of selection and what they reveal about the strength and timing of the selective sweep.
-2. Calculate and interpret population differentiation with F~ST~.
-3. Understand why PBS provides additional information over two-population tests of selection.
-4. Explain how EHH and iHS leverage haplotype information to identify selection.
-
-
-## Signatures of positive selection
-
-A central question in human evolutionary genetics is what genetic adaptations humans acquired as they migrated into diverse environments.
-
-<center>
-
-![**Fig. 1 ([source](https://www.nature.com/articles/nature21347)).** The history of human migrations.](07-selection/images/peopling.jpg){width=85%}
-
-</center>
-
-The process of evolutionary adaptation leaves characteristic signatures on patterns of population genetic variation. By developing statistics to capture these signatures and applying them to human genetic data, we can uncover evidence of past episodes of positive selection.
-
-Statistics for identifying signatures of selection can be broadly classified into two categories: **frequency-based** and **haplotype-based**.
-
-
-## Frequency-based signatures
-
-One signature of selection is an allele whose frequency is either smaller or larger than you would expect.
-
-<center>
-
-![**Fig. 2.** The allele frequencies of this variant shows large differences between population.](07-selection/images/af_diff.png){width=70%}
-
-</center>
-
-***
-<details><summary> How do we determine the expected AF? </summary>
-
-We can compare AFs between populations. On average, neutrally evolving variants should have similar frequencies across populations. We can enrich for potential targets of selection by asking which variants show the biggest population-specific frequency differences.
-
-</details>
-***
-
-If a variant shows large AF differences and the populations in question share common ancestry -- as all populations do -- then the allele frequency must have changed in one population.
-
-We can also supplement this with knowledge about when the populations diverged to determine when and how quickly this AF change must have happened.
-
-
-## Haplotype-based signatures
-
-When a variant changes in frequency, it doesn't change alone. The variants on the haplotype surrounding it will be pulled along to high frequency. This phenomenon, called **hitchhiking**, is similar to the haplotype blocks we observe in GWAS result (and both are caused by linkage between variants).
-
-***
-<details><summary> What do you expect to happen to genetic diversity in the region of a selective sweep? </summary>
-
-If one haplotype is sweeping to high AF, we expect that genetic diversity in the region decreases because it's being replaced by the selected haplotype. This is called a **selective sweep** because variation is being "swept" out of the region.
-
-This decreased diversity signature fades over time as new mutations arise on the haplotype.
-
-</details>
-***
-
-<center>
-
-![**Fig. 3.** (A) Selective sweeps reduce genetic diversity. (B)-(D) Summary of common signatures of selection.](07-selection/images/selection.jpg)
-
-</center>
-
-***
-<details><summary> What can the size of the linked haplotype tell us about its evolutionary history? </summary>
-
-Because recombination breaks down haplotypes over time, a longer haplotype implies more recent selection. It can also provide information on the strength of selection -- if most occurrences of the haplotype in the population are unbroken, selection was strong enough that it didn't have time to recombine during the sweep.
-
-</details>
-***
-
-
-## Setup
-
-### R packages
-
-In addition to `tidyverse` and `vcfR`, we'll also be using `ggtree`, an R package for visualizing trees associated with PBS outliers.
-
-```{r, results = FALSE, message = FALSE, warning = FALSE}
 library(tidyverse)
-library(vcfR)
-library(ggtree)
+library(vcfR) 
+library(ggtree) # an R package for visualizing trees associated with Population Branch Statistic (PBS) outliers
 ```
 
+# Identifying selection
 
-## The F~ST~ statistic
+Definition and application of approaches noted in [Going global by adapting local: A
+review of recent human adaptation](https://doi.org/10.1126/science.aaf5098)
 
-$\mathbf{F_{ST}}$ is a statistic that quantifies differences in allele frequencies between populations at one variable site.
+<center>
+![Human local adaptations](images/Fan_et_al.png){width=85%}
+</center>
 
-The version of $\mathrm{F_{ST}}$ that we'll calculate today compares genotypic variance within **subpopulations ("S")** against the **total population ("T")**. One way to conceptualize this is the deficiency of heterozygotes observed across subpopulations, relative to the proportion that would be expected under random mating (i.e., no population structure).
+### Approaches:
 
-We calculate this by taking the difference between:
+* $\mathrm{F_{ST}}$
+* PBS: Population Branch Statistic
+* LSBL: Locus-Specific Branch Length
+* EHH: Extended haplotype homozygosity
+  * iHS: Integrated haplotype statistic
+  * XP-EHH: Cross-population EHH
 
-* $\mathbf{H_T}$: The expected frequency of heterozygotes when individuals across all subpopulations are pooled
-* $\mathbf{mean(H_S)}$: The mean frequency of heterozygotes, calculated within each subpopulation and then averaged
+### Terms: 
+* Hitchhiking: An increase in proximate variant expression due to selection for a haplotype
+* Selective sweep: Decline in genetic diversity due to the spread or fixation of a selected-for variant
+
+
+<center>
+
+![**Fig. 1 ([source](https://www.nature.com/articles/nature21347)).** The history of human migrations.](images/peopling.jpg){width=85%}
+
+</center>
+
+
+## Fixation index (F~ST~)
+
+$\mathrm{F_{ST}}$ describes the extent to which an allele varies within subpopulations. It reflects the joint effects of drift, migration, mutation and selection. 
+
+* $\mathbf{H_T}$: The total frequency of heterozygotes
+* $\mathbf{mean(H_S)}$: The mean of frequencies of heterozygotes of each subgroup
 * where $H = 2pq$, and $p$ and $q$ are the frequencies of the two alleles at a site
 
 $$
 \textrm{F}_{ST} = \frac{H_T - \textrm{mean}(H_S)}{H_T}
 $$
 
-$\mathrm{F_{ST}}$ ranges from 0 to 1:
-
-* $\mathrm{F_{ST}} = 0$: No population structure (separating the subpopulations doesn't affect heterozygosity estimates)
-* $\mathrm{F_{ST}} = 1$: Subopulations are very different (ex: one population only carries one allele, while the other population only carries the other)
-
-See [this Nature Review Genetics article](https://pubmed.ncbi.nlm.nih.gov/19687804/) for a more thorough discussion on the use and interpretation of $\mathrm{F_{ST}}$ and related statistics.
+* $\mathrm{F_{ST}} = 0$: No variation among subpopulations
+* $\mathrm{F_{ST}} = 1$: Variation exclusively among subpopulations
 
 
-***
+This also comes out to:
+$$
+F_{ST} = \frac{\text{Var}(p)}{p(1 - p)}
+$$
+For allele frequencies p, where $\mathrm{Var_{p}}$
+
+Reference: [Review](https://pubmed.ncbi.nlm.nih.gov/19687804/)
 
 
-## Data (for F~ST~)
-
-We'll calculate $\mathrm{F_{ST}}$ using genotype data from the 1000 Genomes Project. Read in the VCF using the`vcfR` package:
-
-```{r}
-# read genotype data with vcfR
-vcf <- read.vcfR(file = "random_variable_sites.vcf.gz")
-```
-
-We'll also read in a **metadata** table with information on which populations each sample is from.
+From the 1000 Genomes Project:
 
 ```{r}
-# read metadata
+vcf <- read.vcfR(file = "random_variable_sites.vcf.gz", verbose=FALSE)
+
 metadata <- read.table("integrated_call_samples.txt",
                        header = TRUE)
 
-head(metadata)
-```
-
-
-## The `genetic_diff` function
-
-We'll compute $\textrm{F}_{ST}$ using `vcfR`'s `genetic_diff` function. (This function technically calculates $\textrm{G}_{ST}$, a version of $\textrm{F}_{ST}$ that considers when there are more than two alleles at a given locus. When a locus is biallelic, $\textrm{F}_{ST} = \textrm{G}_{ST}$.)
-
-```{r}
-?genetic_diff
-```
-
-`genetic_diff` requires:
-
-1. `vcfR` object (in our case, `vcf`)
-2. Factor indicating populations
-
-***
-<details><summary> "Factor indicating populations" </summary>
-
-The second object for `genetic_diff` needs to be a **vector** (i.e., a list) of population labels for the samples in the VCF.
-
-These labels must be **factors**, which is an R data type that limits a variable to a set of values. In our case, these values are the specific population labels in our dataset. We'll be using the superpopulation groupings for this calculation.
-
-</details>
-***
-
-We can use our `metadata` table to generate a vector of superpopulation labels. Since the superpopulation IDs are in the `superpop` column of that dataframe, we can convert the column from character to factor values with the `as.factor` function.
-
-```{r}
 pop_labels <- as.factor(metadata$superpop)
-head(pop_labels)
-```
 
-Previewing `pop_labels` shows us that there are five "levels" in this vector, where each level is a superpopulation name.
-
-
-## Calculating F~ST~
-
-Run `genetic_diff` on the VCF:
-
-```{r }
-# calculate gst
 gst_results <- genetic_diff(vcf, pop_labels) %>%
-  # order dataframe by descending gst value
   arrange(-Gst)
-```
 
-```{r}
-# preview highest gst variants
-head(gst_results)
-
-# preview lowest gst variants
-tail(gst_results)
-```
-
-`genetic_diff` outputs a table of $\textrm{G}_{ST}$ results, where every line corresponds to one variant from the input VCF. Our $\textrm{G}_{ST}$ values range from $0.0021$ to $0.00033$.
-
-
-## Distribution of G~ST~ across the genome
-
-***
-<details><summary> Plot the distribution of $\textrm{G}_{ST}$ values from `genetic_diff` </summary>
-
-```{r}
 ggplot(data = gst_results,
        aes(x = Gst)) +
-  geom_histogram()
+  geom_histogram(bins=1000) +
+  scale_y_continuous(trans="log10")
 ```
 
-</details>
-***
+(Almost) exponential decay, with most genes below a 1% $\mathrm{F_{ST}}$
 
-This is an exponentially decaying distribution, indicating that most common human variants don't show strong differences in allele frequency between populations.
-
-
-## Top G~ST~ hits
-
-The variants with high $\textrm{G}_{ST}$ values should show differences in allele frequency between populations. Let's examine the top-scoring variant:
+### Analyzing G~ST~ hits in [**GGV**](https://popgen.uchicago.edu/ggv/?data=%221000genomes%22)
 
 ```{r}
 gst_results[1, ]
 ```
 
-We can use the [GGV browser](https://popgen.uchicago.edu/ggv/?data=%221000genomes%22) to visualize this variant's allele frequencies across the 1000 Genomes populations.
-
-One complicating factor is that the browser is based on the **hg19** reference genome, while we're working with a VCF on the more recent **hg38** coordinate system.
-
-***
-<details><summary> How do you compare variants between genome builds? </summary>
-
-There are many ways of converting from genome coordinate system to the other. One way is to look up the ID of the SNP in the [UCSC Genome Browser](https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38), using its **chromosome** and **position**:
-
 <center>
 
-![**Fig. 4.** Identifying a SNP's rsID in the UCSC Genome Browser.](07-selection/images/rsid_ucsc.png)
-
-This SNP has the ID `rs7276293`, which should be consistent between reference builds.
-
-</center>
-
-</details>
-***
-
-
-## Viewing G~ST~ hits in GGV
-
-Now we can navigate to the [**GGV browser**](https://popgen.uchicago.edu/ggv/?data=%221000genomes%22) and look up the distribution of allele frequencies for this variant.
-
-Note that the "position" has changed due to the new coordinate system, but we are looking at the same SNP. This variant has huge allele frequency differences across populations, consistent with the high G~ST~ value that we computed.
-
-Also note that two populations in the Americas also carry this variant at high frequency. These are both African American populations -- **African Caribbean in Barbados (ACB)** and **African Ancestry in SW USA (ASW)**.
-
-<center>
-
-![**Fig. 5.** Allele frequencies of our top G~ST~ hit.](07-selection/images/ggv.png)
+![**Fig. 5.** Allele frequencies of our top G~ST~ hit.](images/ggv.png)
 
 </center>
 
 
-## Population branch statistic
 
-$\textrm{F}_{ST}$ and related statistics ask about allele frequency differences between two populations. If we compare sets of _three_ populations instead of focusing on pairs, we can calculate a different statistic called the **population branch statistic (PBS)**.
+## Population branch statistic (PBS)
 
-***
-<details><summary> What are the advantages of comparing three populations? </summary>
-
-Two-population comparisons tell us that an allele frequency change happened after the two populations diverged, but give us no information about when it occurred.
-
-Comparing between three populations lets us contrast allele frequencies among the populations to localize frequency changes to a particular branch of a tree.
-
-<center>
-
-![**Fig. 6.** A variant exists at different frequencies in populations A and B. By comparing to a third population, we can identify that selection likely occurred within population A.](07-selection/images/pbs.jpg){width=75%}
-
-</center>
-
-</details>
-***
-
-
-## Calculating PBS
-
-PBS is based on calculating $\textrm{F}_{ST}$ for each pairwise comparison of the three populations. We then calculate the branch length ($\mathbf{T}$) that separates each population pair:
+For distances ($\mathbf{T}$) given pairwise $\mathbf{F_{ST}}$:
 
 $$
-T = -\mathrm{log}(1 - \textrm{F}_{ST})
+T = -\mathrm{ln}(1 - \textrm{F}_{ST})
 $$
-
-**PBS** is then computed as:
 
 $$
 \textrm{PBS} = \frac{\textrm{T}_{AB} + \textrm{T}_{AC} - \textrm{T}_{BC}}{2}
 $$
 
+#### Explanation (of T: drift time): 
 
-## Data (for PBS)
+* $F_{ST}$ measures the **fractional reduction of heterozygosity within subpopulations relative to total heterozygosity**:
 
-We'll calculate PBS using data from the paper: [Tucci, S. et al. (2018). Evolutionary history and adaptation of a human pygmy population of Flores Island, Indonesia.](https://science.sciencemag.org/content/361/6401/511.abstract).
+  $$F_{ST} = \frac{H_T - H_S}{H_T}$$
+
+(Under pure drift) within-population heterozygosity decays exponentially:
+
+  $$H_t = H_0 e^{-t/(2N_e)}$$
+  $$F_{ST} \approx 1 - e^{-t/(2N_e)}$$
+
+  $$T = -\ln(1 - F_{ST})$$
+
+  yields an additive quantity proportional to time over $2N_e$, which behaves like a **branch length (drift time)** and is used in the Population Branch Statistic (PBS).
+
+
+### PBS Example: Allele origin among three populations
+
+Using: [Tucci, S. et al. (2018). Evolutionary history and adaptation of a human pygmy population of Flores Island, Indonesia.](https://science.sciencemag.org/content/361/6401/511.abstract).
 
 Flores Island was home to fossils of the archaic hominin species _**Homo floresiensis**_, also called "hobbits" because their skeletons are 3 ft. tall. It's thought that _H. floresiensis_ lived there until just 40k-30k years ago, overlapping with modern humans.
 
@@ -314,111 +151,37 @@ This study collected samples from individuals who currently live on Flores Islan
 
 <center>
 
-![**Fig. 7.** Distribution of populations used in Tucci et al.](07-selection/images/flores.jpg){width=60%}
+![**Fig. 7.** Distribution of populations used in Tucci et al.](images/flores.jpg){width=60%}
 
 </center>
 
-
-## Reading in PBS data
-
-We've pre-calculated pairwise $\textrm{F}_{ST}$ between the Rampasasa, Han Chinese, and Papua New Guinea populations. Load the results for chromosome 11 into R:
+Load pre-calculated pairwise $\textrm{F}_{ST}$ between the Rampasasa, Han Chinese, and Papua New Guinea populations (for chromosome 11). Rows mark SNPs at 'pos', which are essentially unique in this data.
 
 ```{r}
 fst_results <- read.table("fst_results.txt.gz", header = TRUE)
 head(fst_results)
 ```
 
-Every row of this table is a SNP:
-
-* Columns ending in `.af` contain the **allele frequency** for that population
-* Columns starting with `fst.` contain the $\textrm{F}_{ST}$ between that population pair
-
-
-## Calculating PBS
-
-Using these $\textrm{F}_{ST}$ values, we can calculate (for every SNP) the branch lengths ($\mathbf{T}$) that separate each population pair, and then calculate **PBS**.
-
-***
-<details><summary> The `mutate()` function </summary>
-
-tidyverse's `mutate` function is an easy way to perform calculations on tables. Its syntax is:
-
-```
-mutate(new_column = <formula for calculating column values>)
-```
-
-For example, if I wanted to create a new column that average each SNP's allele frequencies across the three populations:
-
-```
-fst_results %>%
-  mutate(avg_af = (rps.af + chb.af + png.af) / 3)
-```
-
-</details>
-***
-
-Filling in the gaps in the code block below, use `mutate` to calculate T and PBS on the FST values:
-
-```{r, eval = FALSE}
-pbs <- fst_results %>%
-  # calculate branch lengths between populations
-  mutate(T_rps_chb = _________,
-         T_rps_png = _________,
-         T_png_chb = _________,) %>%
-  # calculate pbs
-  mutate(pbs = _________) %>%
-  # sort by descending pbs value
-  arrange(-pbs)
-```
-
-***
-<details><summary> Solution </summary>
 
 ```{r}
 pbs <- fst_results %>%
-  # calculate branch lengths between populations
   mutate(T_rps_chb = -log(1 - fst.rps.chb),
          T_rps_png = -log(1 - fst.rps.png),
          T_png_chb = -log(1 - fst.png.chb)) %>%
-  # calculate pbs
   mutate(pbs = ((T_rps_png + T_rps_chb) - (T_png_chb)) / 2) %>%
-  # sort by descending pbs value
   arrange(-pbs)
 
-head(pbs)
-```
-
-</details>
-***
-
-
-## Manhattan plot of PBS results
-
-We can visualize our PBS results by generating a Manhattan plot where we plot PBS on the y-axis instead of p-values.
-
-***
-<details><summary> Make this Manhattan plot using `geom_point`. </summary>
-
-```{r}
 ggplot(data = pbs,
        aes(x = pos, y = pbs)) +
   geom_point()
 ```
 
-</details>
-***
-
 As evidence of positive selection, we are interested in both the height of the peaks in the plot, as well as the number of SNPs that comprise each peak (which is a proxy for haplotype length).
 
 
-## Top PBS hits
-
-What are the top PBS hits we've identified? Click on the `pbs` table to scroll through the SNPs with the highest PBS values.
+#### Top PBS hits
 
 Use the [UCSC Genome Browser](https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19) to look up the top two PBS peaks. (We're using the **hg19** browser here because this data was generated with the hg19 reference genome.)
-
-***
-<details><summary> What genes (if any) do these top PBS peaks overlap with? </summary>
 
 The top chr11 peak doesn't seem to overlap with any genes, but is closest to _KIRREL3_.
 
@@ -426,19 +189,16 @@ The second chr11 peak overlaps with the fatty acid desaturase gene cluster (*FAD
 
 <center>
 
-![**Fig. 8.** The _FADS_ gene cluster around the second PBS peak.](07-selection/images/fads.png)
+![**Fig. 8.** The _FADS_ gene cluster around the second PBS peak.](images/fads.png)
 
 </center>
 
-</details>
-***
 
-
-## Plotting PBS trees
+#### Plotting PBS trees
 
 Another useful way to visualize PBS is by comparing trees for the top PBS outliers to the genome-wide average tree. Run the code blocks below to plot these trees:
 
-```{r}
+```{r, warning=FALSE}
 # create average tree
 tr_mean <- rtree(n = 3,
                  rooted = FALSE,
@@ -452,7 +212,7 @@ ggtree(tr_mean, layout = "daylight") +
   geom_tiplab(label = c("RPS", "PNG", "CHB"))
 ```
 
-```{r}
+```{r, warning=FALSE}
 # create tree for top snp
 tr_top <- rtree(n = 3,
                 rooted = FALSE,
@@ -460,109 +220,80 @@ tr_top <- rtree(n = 3,
                        pbs[1,]$T_rps_chb,
                        pbs[1,]$T_png_chb))
 
-# plot top snp tree
 ggtree(tr_top, layout = "daylight") +
   geom_treescale(width = 0.1) +
   geom_tiplab(label = c("RPS", "PNG", "CHB"))
 ```
 
 
+## LSBL: Locus-Specific Branch Length
+
+The 1st Taylor series term (around 0) of drift-time $\mathrm{T}$ gives $\mathrm{F_{ST}}$
+
+$$- \ln(1 - F_{ST}) \approx F_{ST}$$
+Justifying this approximation, most human $\mathrm{F_{ST}}$ are small (below 1%, generally <15%)
+
+$$LSBL_i = \frac{1}{2} \left( F_{ST}^{i,j} + F_{ST}^{i,k} - F_{ST}^{j,k} \right)$$
+
+
 ## Extended haplotype homozygosity
 
-The haplotype-based class of selection statistics quantifies long haplotypes that result from a selective sweep.
+EHH captures long haplotypes that result from a selective sweep but, unlike prior statistics, can discriminate:
 
-**Extended haplotype homozygosity (EHH)** is defined as the probability that any two haplotypes in a population are homozygous at SNPs in specific genomic region. EHH should be elevated in regions under historical selection, because a sweep causes one haplotype to rise to high frequency, and decay as you move further from the site under selection.
+* Selection, subpopulation-specific, would manifest as a high and local PBS/FST
+* Random fixation (from genetic drift), subpopulation-specific, would manifest in high PBS/FST
+* Background (linked purifying) selection generates AF variation, inflating PBS/FST: removal of neutral alleles linked to deleterious mutations
+* Subpopulation structures (non-random mating, founder events) inflate FST/PBS (broad, detectable by clustering)
+
+
+**Extended haplotype homozygosity (EHH)** is the probability that any two haplotypes in a population are homozygous at SNPs in specific genomic region. EHH is elevated in regions under historical selection relative to drift.
 
 <center>
 
-![**Fig. 9.** EHH measures how likely two haplotypes are to carry the same variant at a given location -- a signature that we expect recent selection to exaggerate.](07-selection/images/ehh.jpg)
+![**Fig. 9.** EHH measures how likely two haplotypes are to carry the same variant at a given location -- a signature that we expect recent selection to exaggerate.](images/ehh.jpg)
 
 </center>
 
 
-## Plotting EHH
-
-EHH can be visualized with phylogeny-like plots like the one below. The width of the blue bar (the haplotype of interest) represents the haplotype's frequency in a population, and the steps in the plot indicate historical recombination.
-
-The other branches of the phylogeny (in red) indicate other haplotypes in this region. An overrepresentation of one haplotype over the others creates the observation of extreme EHH.
-
+### EHH: Phylogeny-like plot
 <center>
 
-![**Fig. 10 (from David Reich).** Overrepresentation of the blue haplotype indicates extreme EHH, a possible signature of selection.](07-selection/images/ehh_plot.png){width=80%}
+![**Fig. 10 (from David Reich).** Overrepresentation of the blue haplotype indicates extreme EHH, a possible signature of selection.](images/ehh_plot.png){width=80%}
 
 </center>
 
-***
-<details><summary> EHH plot for real data </summary>
-
-This plot shows EHH calculated for the CEU population of 1000 Genomes (Utah Residents [CEPH] with Northern and Western European Ancestry), zoomed in at the lactase (**_LCT_**) locus. A haplotype in this locus underwent a selective sweep in ancestor of European populations that allowed digestion of milk into adulthood, resulting in a present-day signature of EHH that stretches across megabases of sequence.
-
-In contrast, the ancestral haplotype (bottom) displays a much greater diversity and recombination.
-
 <center>
 
-![**Fig. 11.** EHH calculated for the lactase locus.](07-selection/images/lct.png)
+![**Fig. 11.** EHH calculated for the lactase locus (CEU population of 1000 Genomes)](images/lct.png)
 
 </center>
 
-</details>
-***
+## iHS (Integrated haplotype statistic)
 
-
-## Integrated haplotype statistic
-
-If you calculate EHH for both the new and ancestral haplotypes at a locus, you can compare them to calculate the **integrated haplotype statistic (iHS)**, which is the ratio of the area under the EHH curve for the derived and ancestral haplotypes.
+The **integrated haplotype statistic (iHS)** is ln of derived divided by ancestral EHH curve integrals. 
 
 <center>
 
-![**Fig. 12.** Comparing the EHH of haplotypes carrying the derived and ancestral alleles to calculate iHS.](07-selection/images/ihs.png)
+![**Fig. 12.** Comparing the EHH of haplotypes carrying the derived and ancestral alleles to calculate iHS.](images/ihs.png)
 
 </center>
 
+## XP-EHH is iHS between contemporaneous populations
 
-## The PopHuman browser
 
-While some R packages exist to compute EHH and iHS (e.g., the `rehh` package), they require some tricky processing of VCF files. Moreover, these statistics have already been computed genome-wide for all of the populations in the 1000 Genomes dataset, available from the [**PopHuman browser**](https://pophuman.uab.cat/).
+### The PopHuman browser
 
-This browser lets you pull up results for several population genetic signatures. Look up the lactase (**_LCT_**) gene in the search bar, and then click `Select tracks` in the upper left-hand corner to choose:
+EHH and iHS exist genome-wide for all of the populations in the 1000 Genomes dataset, available from the [**PopHuman browser**](https://pophuman.uab.cat/).
+
+Ex: Look up the lactase (**_LCT_**) gene in the search bar, and then click `Select tracks` in the upper left-hand corner to choose:
 
 * **iHS** for the CEU (European) population
 * **pi** for the CEU population. This is a measure of nucleotide diversity, which we expect to be low in a region under historical selection
 
 <center>
 
-![**Fig. 13.** iHS and $\pi$ in the _LCT_ region.](07-selection/images/pophuman.png)
+![**Fig. 13.** iHS and $\pi$ in the _LCT_ region.](images/pophuman.png)
 
 </center>
 
 Note that if we compare both of these statistics to the genome-wide mean (yellow lines), we can see how dramatically they deviate from expectations in this genomic region.
-
-
-## Conclusion
-
-In this lab, we used three approaches to identify selection in multi-population sequencing data.
-
-* Using genotype data from the 1000 Genomes Project, we calculated **F~ST~**, a measure of how different a variant's allele frequency is between populations.
-  * We confirmed in the **GGV Browser** that the top F~ST~ variant shows strong population-specific AF differences.
-<br></br>
-* We then calculated the **population branch statistic (PBS)** to identify variants under selection in a human population on Flores Island, Indonesia.
-  * One of the top PBS hits was in the fatty acid desaturase gene cluster (FADS).
-<br></br>
-* Finally, we discussed **extended haplotype homozygosity (EHH)** and related statistics, which detect long haplotypes that result from a **selective sweep**.
-  * Using the [**PopHuman browser**](https://pophuman.uab.cat/), we saw that the _LCT_ locus -- the most famous example of selection in humans -- exhibits both elevated EHH and reduced genetic diversity ($\pi$).
-
-
-## Homework
-
-#### Learning Objectives
-
-* Interpret multiple statistics for measuring selection
-* Explain how specific statistics can give different results because they measure different genetic signatures
-
-#### Assignment
-
-Read [**this review paper**](https://www.science.org/doi/10.1126/science.aaf5098) on genomic evidence of human local adaptation by Fan et al. Find examples of local adaptation (genes and populations) in the paper, and look up the relevant populations (or related populations) and tests of selection in the [PopHuman browser](https://pophuman.uab.cat/).
-
-- Are the signatures of selection apparent?
-- Are the signature apparent based on all statistics?
-- Why do certain statistics capture evidence of selection at certain loci but not others?

@@ -1,349 +1,166 @@
-
+---
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
 ```{r, include = FALSE}
 ottrpal::set_knitr_image_path()
-knitr::opts_knit$set(root.dir = '03-ld')
+BASE_WD = '/Coursework-Human-Genome-Variation' # SPECIFY BASE_WD 
+knitr::opts_knit$set(root.dir = file.path(BASE_WD, "03-ld/"))
 ```
 
-# Linkage disequilibrium
+# Linkage Disequilibrium (LD)
 
-In this module, we'll use DNA sequencing data from human populations to assess linkage disequilibrium between two genetic variants.
+LD statistics are computed from sequence variation data (e.g., 1000 Genomes Project).
 
-#### Learning objectives
+**Utility:**
 
-After completing this chapter, you'll be able to:
+* Phenotypic association
+* Evolutionary inference (gene flow, selective pressure)
+* Imputation of linked variants
 
-1. Define linkage disequilibrium.
-2. Manually calculate $D$, $D'$, and $r^2$ from genotype data.
-3. Understand the differences in interpretation for different LD statistics.
-4. Explain how LD both benefits and limits genetics studies.
+---
 
+### Definitions
 
-## What is linkage disequilibrium?
+**Linkage Disequilibrium Coefficient $D$:**
 
-**Linkage disequlibrium (LD)** refers to correlation among genotypes at multiple sites in the genome. This is a consequence of the fact that chromosomes are transmitted in "chunks" through the generations.
+$$
+D = h_{12} - p_1 \, p_2
+$$
 
-When mutations arise, they arise on a single chromosome with a given set of alleles. The new mutation will continue to be associated with this genetic background until it is shuffled during the process of meiotic recombination. Together, a set of alleles that tend to occur together because of linkage disequilibrium is called a **haplotype**.
+where $h_{12}$ is the frequency of the haplotype carrying allele 1 at locus 1 and allele 2 at locus 2, and $p_1, p_2$ are allele probabilities.
 
-<center>
+**Squared Correlation $r^2$ (biallelic loci):**
 
-![**Fig. 1.** After a new mutation arises, recombination over the course of many generations reduces the number of variants in LD with it.](03-ld/images/ld.jpg){width=75%}
+$$
+r^2 = \frac{D^2}{\,p_A (1-p_A)\, p_B (1-p_B)\,}
+$$
 
-</center>
+**Allele association p-values:**
 
+* Fisher’s exact test (for 2×2 tables)
+* Chi-squared test (for >2×2 contingency tables)
 
-## Why do we care about LD?
+---
 
-As a result of linkage disequilibrium, knowledge of a genotype at one site in the genome can provide information about the genotype at another site, even if the second site was not actually genotyped. Using prior knowledge of LD to "fill in" missing genotype information is a process called **imputation**.
+### Derivation of $r^2$ for 2 loci, 2 alleles
 
-Linkage disequilibrium also means that correlation between a genotype at a particular site and phenotype (e.g., disease outcome) does not imply causation. Even ignoring other possible confounders, any variant on the same haplotype could be driving the association.
+Define indicator variables:
 
-Beyond mutation and recombination, other evolutionary forces such as gene flow, genetic drift, and natural selection can also influence patterns of LD observed in population genetic data. Measuring linkage disequilibrium is therefore important for both medical and evolutionary studies.
+$$
+X = 
+\begin{cases} 
+1 & \text{if haplotype carries major allele at SNP1} \\ 
+0 & \text{otherwise} 
+\end{cases}, 
+\quad
+Y = 
+\begin{cases} 
+1 & \text{if haplotype carries major allele at SNP2} \\ 
+0 & \text{otherwise} 
+\end{cases}
+$$
 
-<center>
+Expectations:
 
-![**Fig. 2.** LD can be used to impute missing genotypes, but also complicates genetic association studies (such as finding variants that cause disease). Non-causal variants in LD will perfectly co-occur with the causal variant, making it difficult to determine which one is truly causal.](03-ld/images/imputation_gwas.jpg)
+$$
+E[X] = p_A, \quad E[Y] = p_B
+$$
 
-</center>
+Variances:
 
+$$
+\mathrm{Var}(X) = p_A(1-p_A), \quad \mathrm{Var}(Y) = p_B(1-p_B)
+$$
 
-## Setup
+Covariance:
 
-We’ll measure LD between two SNPs called in the [1000 Genomes Project](https://mccoy-lab.github.io/hgv_modules/the-1000-genomes-project.html) dataset:
+$$
+\mathrm{Cov}(X,Y) = E[XY] - E[X]E[Y] = p_{AB} - p_A p_B = D
+$$
+
+Correlation coefficient:
+
+$$
+r = \frac{\mathrm{Cov}(X,Y)}{\sqrt{\mathrm{Var}(X)\, \mathrm{Var}(Y)}} 
+= \frac{D}{\sqrt{p_A(1-p_A)\, p_B(1-p_B)}}
+$$
+
+Thus:
+
+$$
+\boxed{r^2 = \frac{D^2}{\,p_A(1-p_A)\,p_B(1-p_B)\,}}
+$$
+
+---
+
+**References / Tools:**
+
+* **LDpair:** Compute $D$ and $r^2$ for variant pairs (e.g., rs28574812 & rs2251399)
+* **LDproxy:** Retrieve all SNPs’ $r^2$ relative to a SNP of interest
+
+* **locuszoom plots** (for LD+GWAS)
+
+---
+<br></br>
+
+## Task: Measure LD between two SNPs called in the [1000 Genomes Project](https://mccoy-lab.github.io/hgv_modules/the-1000-genomes-project.html) dataset
 
 * [rs28574812](https://gnomad.broadinstitute.org/variant/21-15012619-A-G?dataset=gnomad_r3) (`chr21:15012619`)
 * [rs2251399](https://gnomad.broadinstitute.org/variant/21-15013185-C-T?dataset=gnomad_r3) (`chr21:15013185`)
 
-We’ve preprocessed the original 1000 Genomes data such that every line in the table below represents **one haplotype** in the 1000 Genomes database. Load the pre-processed data by running the code below.
-
+Every line in the table represents **one haplotype** in the 1000 Genomes database. 
 ```{r}
 # read data
 haplotypes <- read.table("snp_haplotypes.txt", header = TRUE)
 
 # preview data
 head(haplotypes)
+
+table <- table(haplotypes$snp1_allele, haplotypes$snp2_allele)
+
+# Calculate p-value against linkage equilibrium (Fisher's Exact test for 2 alleles, 2 loci)
+fisher.test(table)
+# More generally, Chi-squared can be used (>2x2)
+
+# Here, A, C are major alleles of SNP1 and SNP2, respectively (i.e. subscripts 1 and 2)
+
+# Measuring LD with D
+h_12 <- table["A", "C"] / sum(table)
+p_1 <- sum(table["A", ]) / sum(table)
+p_2 <- sum(table[, "C"]) / sum(table)
+
+D <- h_12 - p_1*p_2 # 0.14, positive in accordance with Fisher's test enrichment
+
+D_primer <- function(D, p1, p2) {
+    D_max = max(-p1*p2, -(1-p1)*(1-p2))
+    D_min = min(p1*(1-p2), p2*(1-p1))
+
+    if (D < 0) D_prime = D/D_max
+    else if (D > 0) D_prime = D/D_min
+    else D_prime = 0
+
+    return(D_prime)
+}
+
+D_prime = D_primer(D, p_1, p_2)
+
+print(D_prime) #0.81 - strong LD
+
+r_squarer <- function(D, p1, p2) {
+    D^2/( p1*(1-p1) * p2*(1-p2) )
+}
+
+r_squared <- r_squarer(D, p_1, p_2)
+print(r_squared) # 0.38, moderate
 ```
 
-The columns in this table are:
-
-1. `sample`: Name of the individual who was sequenced
-2. `haplotype`: Haplotype (i.e., the maternal or paternal chromosome) that the SNP is on
-3. `snp1_allele`: Genotype at SNP1 on this haplotype
-4. `snp2_allele`: Genotype at SNP2 on this haplotype
-
-Note that there are **2,504** samples in the 1000 Genomes Project but **5,008** total lines in the table. This is because there are two lines per individual -- one for each of their maternal and paternal haplotypes.
 <br></br>
 
-<center>
 
-![**Fig. 3.** Our reformatted VCF shows the combinations of alleles at two SNPs of interest, for all haplotypes in the 1000 Genomes dataset.](03-ld/images/vcf_data.jpg){width=75%}
-
-</center>
-
-
-## Are these SNPs in LD?
-
-If we run `table` on each SNP column, we can see which alleles exist at SNP1 and SNP2.
-
-* SNP1 can be `A` or `G`
-* SNP2 can be `C` or `T`
-
-```{r}
-table(haplotypes$snp1_allele)
-table(haplotypes$snp2_allele)
-```
-
-If these two SNPs were in **perfect LD**, we'd expect to see only two haplotypes in our data (**Fig. 4A**).
-
-1. `A` `C`: If someone carries an `A` at SNP1, they will always carry a `C` at SNP2.
-2. `G` `T`: If they carry a `G` at SNP1, they will always carry a `T` at SNP2.
-
-If these two SNPs were in **linkage _equilibrium_**, the allele at SNP1 would give us no information about SNP2. We would expect to see all four possible haplotypes, in amounts proportional to the component allele frequencies (**Fig. 4B**).
-
-1. `A` `C`
-2. `A` `T`
-3. `G` `C`
-4. `G` `T`
-<br></br>
-
-<center>
-
-![**Fig. 4.** When two SNPs are in perfect LD, seeing an allele on one haplotype perfectly predicts which allele is on the other haplotype.](03-ld/images/perfect_ld.jpg)
-
-</center>
-
-
-## Counting haplotypes with `table`
-
-We can use the `table` function to count the occurrence of the four possible haplotypes.
-
-```{r}
-table(haplotypes$snp1_allele, haplotypes$snp2_allele)
-```
-
-The table tells us that there are 2655 `A` `C` haplotypes (`A` at SNP1 and `C` at SNP2), 170 `G` `C` haplotypes, etc.
-
-***
-<details> <summary> Do these SNPs look like they're in LD? </summary>
-
-It looks like there are some haplotypes (`A` `C` and `G` `T`) that are overrepresented. However, it's hard to tell whether that's just because an `A` allele at SNP1 is much more common than `T` is.
-
-</details>
-***
-
-
-## Fisher's exact test
-
-We can wrap our table in the `fisher.test` function to perform a **Fisher's exact test**. This test tells us whether there is a non-random association between any of the SNP alleles, while accounting for the relative proportions of each allele.
-
-```{r}
-fisher.test(table(haplotypes$snp1_allele, haplotypes$snp2_allele))
-```
-
-The **p-value** is very small (`< 2.2e-16`), so we can reject the null hypothesis that the two SNPs are associating independently of each other.
-
-***
-<details> <summary> How do we interpret the odds ratio from the Fisher's exact test? </summary>
-
-In addition to the p-value, Fisher's Exact Test also gives us an odds ratio of `26.9`, with a 95% confidence interval of `[22.5, 32.3]`. In this context, the **odds ratio** reflects how much more likely you are to see an `A` at SNP1 if you also see an `C` at SNP2.
-
-We can observe that the **95% confidence interval** doesn't overlap with 1. An odds ratio of 1 would mean that seeing `C` at SNP2 doesn't influence the probability of seeing an `A` at SNP1.
-
-This is a somewhat non-canonical usage of [Fisher's exact test](https://medium.com/towards-data-science/interpretation-of-odds-ratio-and-fishers-exact-test-c6dde394d204), and in our case the odds ratio applies to whatever haplotype is in the top left corner of our 4x4 table. We could rearrange the table to calculate the odds ratio for any of the three other combinations of alleles.
-
-</details>
-***
-
-Together, the p-value and 95% confidence interval tell us that there is strong evidence of LD between these SNPs. Perhaps this isn't surprising, since our two SNPs are common and close to one another on chromosome 21.
-
-
-## Measuring LD with $D$
-
-If SNP1 and SNP2 are in **linkage _equilibrium_**, the probability of seeing an `A` `C` haplotype should be equal to the product of the allele frequencies of `A` and `C`. This is simply the probablity of observing two events together if the events are independent.
-
-Otherwise, for SNPs that are **not** independent of each other, we should see `A` `C` either more or less often than expected from the allele frequencies.
-
-This intuition is summarized in $\mathbf{D}$, a population genetics statistic for measuring LD between two SNPs.
-<br></br>
-
-$$
-D = h_{12} - p_1*p_2
-$$
-
-* $\mathbf{h_{12}}$ is the frequency of our haplotype of interest (`A` `C`).
-* $\mathbf{p_1*p_2}$ is the product of the frequencies of the two alleles on this haplotype (`A` at SNP1 and `C` at SNP2)
-
-***
-<details> <summary> How do we interpret $D$? </summary>
-
-If two SNPs are in **linkage equilibrium**, $h_{12}$ and $p_1*p_2$ should be the same, and we should get $D = 0$.
-
-If two SNPs are in **linkage disequilibrium**, $p_1*p_2$ should be different from $h_{12}$, so that $D \neq 0$.
-
-</details>
-***
-
-
-## Calculating $D$
-
-We can re-run our `table` code to find the probabilities we need for calculating $D$.
-
-```{r}
-table(haplotypes$snp1_allele, haplotypes$snp2_allele)
-```
-
-$$
-D = h_{12} - p_1*p_2
-$$
-
-***
-<details> <summary> What are $h_{12}$, $p_1$, and $p_2$? </summary>
-
-$h_{12}$ is the probability of seeing the `A` `C` haplotype. This is equal to the number of `A` `C` haplotypes over the number of total haplotypes:
-
-$$\frac{2655}{2655 + 170 + 801 + 1382} = \frac{2655}{5008}$$
-
-$p_1$ is the probability that SNP1 is `A`. We can get this by adding across the first **row** of the table (i.e., adding the number of `A` `C` and `A` `T` haplotypes):
-
-$$\frac{2655 + 801}{5008}$$
-
-$p_2$ is the probability that SNP2 is `C`. We can get this by adding across the first **column** of the table (i.e., adding the number of `A` `C` and `G` `G` haplotypes):
-
-$$\frac{2655 + 170}{5008}$$
-
-(Note that the denominator is always 5008 -- the total number of haplotypes in our dataframe.)
-
-</details>
-***
-
-<br></br>
-Now we can plug in the corresponding probabilities to calculate `D`:
-
-```{r}
-# define our probabilities of interest
-h <- 2655 / 5008
-p1 <- (2655 + 801) / 5008
-p2 <- (2655 + 170) / 5008
-
-# calculate D
-D <- h - (p1 * p2)
-D
-```
-
-$D = 0.14$, which is non-zero, suggesting that these SNPs are in LD.
-
-
-## Measuring LD with $D'$
-
-Aside from being nonzero, what does the value of $D$ mean? This is surprisingly hard to interpret because the minimum and maximum value of $D$ is different for every pair of SNPs.
-
-***
-<details> <summary> Why does the range of $D$ change? </summary>
-
-The possible values of $D$ depend on the frequencies of the alleles at each SNP. For example:
-
-* If $p_1 = 0.5$ and $p_2 = 0.5$, then $D$ is between $[-0.25, 0.25]$
-* If $p_1 = 0.1$ and $p_2 = 0.7$, then $D$ is between $[-0.07, 0.03]$
-
-</details>
-***
-
-The $\mathbf{D'}$ statistic fixes this issue by dividing $D$ by its theoretical maximum. $D'$ is constrained between $[-1, 1]$, where more extreme values denote stronger LD.
-
-$$
-D' = \frac{D}{\mathrm{max}(-p_1 p_2, -(1-p_1)(1-p_2))}, \mathrm{\:for\:} D < 0 \\
-D' = \frac{D}{\mathrm{min}(p_1 (1-p_2), p_2(1-p_1) )}, \mathrm{\:for\:} D > 0
-$$
-
-$p_1$ and $p_2$ are the frequencies of the alleles at SNP1 and SNP2.
-
-***
-<details> <summary> Use this formula to calculate $D'$ for our two SNPs of interest. </summary>
-
-Because $D$ is positive, we use the second formula for $D'$. First, we need to find the denominator, which is the minimum of $p_1 (1-p_2)$ and $p_2 (1-p_1)$.
-
-```{r}
-p1 * (1-p2)
-p2 * (1-p1)
-```
-
-`p2 * (1-p1)` is smaller, so we plug that into our $D'$ formula:
-
-```{r}
-Dprime <- D / (p2 * (1-p1))
-Dprime
-```
-
-This tells us that LD between these two SNPs is 80.6% of its theoretical maximum.
-
-</details>
-***
-
-
-## Measuring LD with $r^2$
-
-$\mathbf{r^2}$ is the most common statistic for measuring LD. Its value ranges from [0, 1], where 1 indicates maximum LD.
-
-$$
-r^2 = \frac{D^2}{p_1 (1-p_1) p_2 (1-p_2)}
-$$
-
-Although it looks similar to the formulas for $D$ and $D'$, $r^2$ is actually derived from the **correlation coefficient** of the frequencies of SNP1 and SNP2, and has a slightly different interpretation:
-
-* $D$ and $D'$ measure whether recombination has occurred between two alleles
-* $r^2$ measures how well we can predict the allele at one locus if given the allele at the other locus
-
-***
-<details> <summary> Calculate $r^2$ for our two SNPs of interest. </summary>
-
-```{r}
-r2 <- D^2 / (p1*(1-p1)*p2*(1-p2))
-r2
-```
-
-$r^2 = 0.38$, indicating that these SNPs are in moderate LD.
-
-</details>
-***
-
-
-## LDlink
-
-[**LDlink**](https://ldlink.nci.nih.gov/) is a web application that allows you to compute and visualize linkage disequilibrium using data from the 1000 Genomes Project (the same dataset we've been using for this module).
-
-Go to LDlink's **LDpair** tool, which computes $D'$ and $r^2$ between pairs of SNPs. Using either the rsIDs or the chromosome and position of the two SNPs we looked at today, check our calculations for $D'$ and $r^2$. Make sure you:
-
-* Select `All Populations`, since we didn't subset our data by population.
-* If using SNP position, note that our data was aligned to the GRCh38 reference genome.
-<br></br>
-
-<center>
-
-![**Fig. 5.** LDpair results for the two SNPs from this class.](03-ld/images/ldpair.png)
-
-</center>
-
-We can see that these $D'$ and $r^2$ statistics, as well as the 4x4 table, are very similar to what we calculated by hand! (The values aren't identical because we're using a slightly different genotyping dataset.)
-
-
-## Visualizing LD blocks
-
-**LDproxy**, another LDlink tool, finds all SNPs in strong LD with a SNP of interest.
-
-Open LDproxy and use it to search for one of the SNPs from today (it may take the webpage a minute to load the results).
-<br></br>
-
-<center>
-
-![**Fig. 6.** LDproxy results for `rs28574812`.](03-ld/images/ldproxy.jpg)
-
-</center>
-
-To generate this plot, LDproxy calculated $r^2$ between our SNP of interest and all other SNPs in a 500kb window. As expected, we can see that LD is strongest for variants that are closest to the SNP.
-
-LDproxy also provides even more information than just LD -- it also includes regulatory annotations for all the variants in this region (the numbers within each dot), as well as gene annotations and a list of nearby variants (below the plot).
-
-
-## LD in association studies
+## LD & GWAS, locuszoom plot
 
 The figure below is a **locuszoom plot** -- a common visualization of data from **genome-wide association studies (GWAS)**. This particular study was a GWAS for genetic variants that impact mean corpuscular hemoglobin concentration.
 
@@ -361,37 +178,20 @@ This is a problem that affects all association studies. Two common ways of worki
 
 <center>
 
-![**Fig. 7.** GWAS associations with mean corpuscular hemoglobin concentration, from [this paper](https://journals.plos.org/plosone/article/comments?id=10.1371/journal.pone.0069206).](03-ld/images/gwas.jpg){width=75%}
-
+![Fig. 7. GWAS associations with mean corpuscular hemoglobin concentration](images/gwas.jpg){width=75%}
 </center>
 
-
-## Conclusion
-
-In this lab, we used genotype data from the 1000 Genomes Project to ask whether there is **linkage disequilibrium** between two SNPs on chr21.
-
-* Using data from the VCF, we used `table` to count how often we observe combinations of alleles at these SNPs.
 <br></br>
-* We used the data in the table to calculate three LD statistics:
-    * $\mathbf{D}$: the deviation of the observed haplotype frequency from the expected haplotype frequency
-    * $\mathbf{D'}$: a normalization of $D$ that ranges from $[-1, 1]$
-    * $\mathbf{r^2}$: how well the allele at one locus predicts the allele at another locus
-<br></br>
-* We used **LDlink** to visualize how blocks of LD define haplotypes.
 
+## Assignment
 
-## Homework
-
-#### Learning Objectives
-
-* Calculate and interpret LD statistics
-
-#### Assignment
-
-We've subset the VCF from class to show haplotypes for two different pair of SNPs:
+For two different pair of SNPs:
 
 * `chr21:15005329` and `chr21:15007704`
 * `chr21:15336586` and `chr21:15336794`
+
+**Calculate $D$, $D'$, and $r^2$ for these sets of SNPs. Which alleles are segregating together? What does each LD statistic indicate?**
+
 
 ```{r}
 # read data for first set of SNPs
@@ -401,118 +201,84 @@ hw1 <- read.table("snp_haplotypes_hw1.txt", header = TRUE)
 hw2 <- read.table("snp_haplotypes_hw2.txt", header = TRUE)
 ```
 
-**Assignment:** Using the code from class, calculate $D$, $D'$, and $r^2$ for these sets of SNPs. Which alleles are segregating together? What does each LD statistic indicate? (Feel free to check your work on LDpair.)
-
-***
-<details> <summary> Solution for first set of SNPs </summary>
-
-First use `table` to count the occurences of the four haplotypes.
+### TASK 1:
 
 ```{r}
-table(hw1$snp1_allele, hw1$snp2_allele)
+# TASK 1:
+
+table <- table(hw1$snp1_allele, hw1$snp2_allele)
+
+#     A   G      < SNP2
+# C  747 2508
+# T  2   1751
+# ^
+# SNP1
+
+# SNP1: 1 -> C (1=C, 0=T)
+# SNP2: 2 -> A (1=A, 0=G)
+
+p_1 <- sum(table["C", ]) / sum(table)
+p_2 <- sum(table[, "A"]) / sum(table)
+
+h_12 <- sum(table["C", "A"] / sum(table))
+
+D <- h_12 - p_1 * p_2
+D_prime <- D_primer(D, p_1, p_2)
+r_squared <- r_squarer(D, p_1, p_2)
+
+```
+```{r, echo=FALSE}
+cat(
+  "Task 1 (`chr21:15005329` and `chr21:15007704`)\n",
+  paste0("D = ", signif(D)), "\n",
+  paste0("D' = ", signif(D_prime, 2)), "\n",
+  paste0("r^2 = ", signif(r_squared, 2)), "\n"
+)
+```
+```{r}
+
+# D = 5.2%, D'=0.99, r^2=0.093
+# Interpretation: High D', low r: In disequilibrium but not well correlated
+#   - Conditionally rare SNP, 2=G doesn't well predict 1
 ```
 
-All four possible haplotypes exist in this population.
-<br></br>
-
-$\mathbf{D = h_{12} - p_1*p_2}$
+### TASK 2:
 
 ```{r}
-h <- 747 / 5008
-p1 <- (747 + 2508)/5008
-p2 <- (747 + 2)/5008
+# TASK 2:
 
-D <- h - p1 * p2
-D
+table <- table(hw2$snp1_allele, hw2$snp2_allele)
+
+#     A   G      < SNP2
+# A  3522 0
+# G  0   1486
+# ^
+# SNP1
+
+# SNP1: 1 -> A (1=A, 0=G)
+# SNP2: 2 -> A (1=A, 0=G)
+
+
+p_1 <- sum(table["A", ]) / sum(table)
+p_2 <- sum(table[, "A"]) / sum(table)
+
+h_12 <- sum(table["A", "A"] / sum(table))
+
+D <- h_12 - p_1 * p_2
+D_prime <- D_primer(D, p_1, p_2)
+r_squared <- r_squarer(D, p_1, p_2)
 ```
-
-$D$ is non-zero, which suggests that these SNPs **might be in LD**.
-<br></br>
-
-$\mathbf{D' = \frac{D}{\mathrm{min}(p_1 (1-p_2), p_2(1-p_1))}}$ **(because $D > 0$)**
-
-First we determine the denominator by calculating which of $p_1 (1-p_2)$ and $p_2(1-p_1)$ is smaller:
-
+```{r, echo=FALSE}
+cat(
+  "Task 1 (`chr21:15336586` and `chr21:15336794`)\n",
+  paste0("D = ", signif(D)), "\n",
+  paste0("D' = ", signif(D_prime, 2)), "\n",
+  paste0("r^2 = ", signif(r_squared, 2)), "\n"
+)
+```
 ```{r}
-p1 * (1-p2)
-p2 * (1-p1)
+
+# D = 21%, D'=1, r^2=1
+# Maximal LD
 ```
 
-$p_2(1-p_1)$ is smaller, so we use it for the denominator. $D'$ is:
-
-```{r}
-Dprime <- D / ((1-p1) * p2)
-Dprime
-```
-
-$D' = 0.99$, which indicates **very high LD** (almost no recombination has occurred between alleles on this haplotype).
-<br></br>
-
-$\mathbf{r^2 = \frac{D^2}{p_1 (1-p_1) q_1 (1-q_1)}}$
-
-```{r}
-r2 <- D^2 / (p1 * (1-p1) * p2 * (1-p2))
-r2
-```
-
-However, $r^2 = 0.09$ (**linkage equilibrium**)! This is because one of the haplotypes, `A` `T`, is very rare -- there are only two copies in the population. $r^2$ tells us that the counts of the `A` `T` haplotype are so low that an `A` at SNP1 doesn't do a great job of predicting when SNP2 is `T`.
-
-</details>
-***
-
-***
-<details> <summary> Solution for second set of SNPs </summary>
-
-First use `table` to count the occurences of the four haplotypes.
-
-```{r}
-table(hw2$snp1_allele, hw2$snp2_allele)
-```
-
-The only haplotypes that exist in this population are `A` `C` and `G` `G`.
-<br></br>
-
-$\mathbf{D = h_{12} - p_1*p_2}$
-
-```{r}
-h <- 3522 / 5008
-p1 <- (3522 + 0)/5008
-p2 <- (3522 + 0)/5008
-
-D <- h - p1 * p2
-D
-```
-
-$D$ is non-zero, which suggests that these SNPs might be in LD.
-<br></br>
-
-$\mathbf{D' = \frac{D}{\mathrm{min}(p_1 (1-q_1), (1-p_1)q_1 )}}$ **(because $D > 0$)**
-
-First we determine the denominator by calculating which of $p_1 (1-p_1)$ and $p_2 (1-p_2)$ is smaller:
-
-```{r}
-p1 * (1-p2)
-p2 * (1-p1)
-```
-
-The two values are exactly the same, so we can use either for the denominator. $D'$ is:
-
-```{r}
-Dprime <- D / (p1 * (1-p2))
-Dprime
-```
-
-$D' = 1$! These SNPs are in maximum LD (no recombination has occured between them).
-<br></br>
-
-$\mathbf{r^2 = \frac{D^2}{p_1 (1-p_1) p_2 (1-p_2)}}$
-
-```{r}
-r2 <- D^2 / (p1 * (1-p1) * p2 * (1-p2))
-r2
-```
-
-$r^2 = 1$! These SNPs are in maximum LD (everyone who carries an `A` at SNP1 has an `A` at SNP2, and everyone with a `G` at SNP1 has a `G` at SNP2).
-
-</details>
-***
